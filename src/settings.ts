@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import PrintPlugin from './main';
-import { isPrintSnippetEnabled } from './utils/generatePrintStyles';
+import { getPrintSnippet, isPrintSnippetEnabled } from './utils/generatePrintStyles';
 
 export class PrintSettingTab extends PluginSettingTab {
     plugin: PrintPlugin;
@@ -87,11 +87,11 @@ export class PrintSettingTab extends PluginSettingTab {
             .setName('Custom CSS')
             .setDesc(`You can add a custom 'print.css' to appearance > CSS snippets, then this toggle will be enabled and synced with CSS snippets. The easier way is to add your styles using @media print {body {...}}.`)
             .addToggle(toggle => toggle
-                .setValue(isPrintSnippetEnabled(this.app))
+                .setValue(getPrintSnippet(this.app) && isPrintSnippetEnabled(this.app))
                 .onChange(async (value) => {
                     this.app.customCss.setCssEnabledStatus("print", value);
                     await this.plugin.saveSettings();
                 }))
-            .setDisabled(!this.app.customCss.snippets.contains("print"));
+            .setDisabled(!getPrintSnippet(this.app));
     }
 }

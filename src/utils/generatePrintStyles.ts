@@ -29,8 +29,8 @@ export async function generatePrintStyles(app: App, manifest: PluginManifest, se
     }
 
     // Read user styles (optional)
-    // Only include if the print.css is activated.
-    if (isPrintSnippetEnabled(app)) {
+    // Only include if the print.css is activated and still exists.
+    if (getPrintSnippet(app) && isPrintSnippetEnabled(app)) {
         userStyle = getPrintSnippetValue(app) ?? '';        
     }
 
@@ -57,4 +57,8 @@ function getPrintSnippetValue(app: App,): string | undefined {
 
 export function isPrintSnippetEnabled(app: App): boolean {
     return app.customCss.enabledSnippets.has("print")
+}
+
+export function getPrintSnippet(app: App): boolean {
+    return app.customCss.snippets.contains("print");
 }
