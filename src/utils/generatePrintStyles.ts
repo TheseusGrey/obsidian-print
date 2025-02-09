@@ -1,5 +1,6 @@
-import { App, FileSystemAdapter, Notice, PluginManifest } from "obsidian";
+import { App, Notice, PluginManifest } from "obsidian";
 import { PrintPluginSettings } from "src/types";
+import { CustomCSS } from "obsidian-typings";
 
 /**
  * Retrieves styles.css from plugin and the optional print.css snippet. 
@@ -28,11 +29,10 @@ export async function generatePrintStyles(app: App, manifest: PluginManifest, se
     }
 
     // Read user styles (optional)
-    // TODO: Only include if the print.css is activated.
-    const userStylePath = `${app.vault.configDir}/snippets/print.css`;
-    try {
-        userStyle = await adapter.read(userStylePath);
-    } catch { }
+    // Only include if the print.css is activated.
+    if (isPrintSnippetEnabled(app)) {
+        userStyle = getPrintSnippetValue(app) ?? '';        
+    }
 
     return `
         body { font-size: ${settings.fontSize}; }
@@ -46,4 +46,15 @@ export async function generatePrintStyles(app: App, manifest: PluginManifest, se
         ${pluginStyle}
         ${userStyle}
     `;
+}
+
+
+function getPrintSnippetValue(app: App,): string | undefined {
+    const printCssPath = ".obsidian/snippets/print.css";
+    return app.customCss.csscache.get(printCssPath);
+}
+
+
+export function isPrintSnippetEnabled(app: App): boolean {
+    return app.customCss.enabledSnippets.has("print")
 }
