@@ -10,25 +10,31 @@ export default class PrintPlugin extends Plugin {
     settings: PrintPluginSettings;
 
     async onload() {
-
+        console.log('Print plugin loaded');
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 
         this.addCommand({
             id: 'print-note',
             name: 'Current note',
-            callback: () => this.printNote(),
+            callback: async () => await this.printNote(),
+        });
+
+        this.addCommand({
+            id: 'print-selection',
+            name: 'Print selection',
+            callback: async () => await this.printSelection(),
         });
 
         this.addCommand({
             id: 'print-folder-notes',
             name: 'All notes in current folder',
-            callback: () => this.printFolder(),
+            callback: async () => await this.printFolder(),
         });
 
         this.addSettingTab(new PrintSettingTab(this.app, this));
 
-        this.addRibbonIcon('printer', 'Print note', (evt: MouseEvent) => {
-            this.printNote();
+        this.addRibbonIcon('printer', 'Print note', async () => {
+            await this.printNote();
         });
 
         this.registerEvent(
@@ -38,39 +44,76 @@ export default class PrintPlugin extends Plugin {
                         item
                             .setTitle('Print note')
                             .setIcon('printer')
-                            .onClick(() => this.printNote(file));
+                            .onClick(async () => await this.printNote(file));
                     });
-                } else if (file instanceof TFolder) {
+                } else {
                     menu.addItem((item) => {
                         item
                             .setTitle('Print all notes in folder')
                             .setIcon('printer')
-                            .onClick(() => this.printFolder(file));
+                            .onClick(async () => await this.printFolder(file as TFolder));
                     });
                 }
+            })
+        );
+
+        this.registerEvent(
+            this.app.workspace.on('editor-menu', (menu) => {
+                menu.addItem((item) => {
+                    item
+                        .setTitle('Print note')
+                        .setIcon('printer')
+                        .onClick(async () => await this.printNote());
+                })
+                menu.addItem((item) => {
+                    item
+                        .setTitle('Print selection')
+                        .setIcon('printer')
+                        .onClick(async () => await this.printSelection());
+                });
             })
         );
     }
 
     async printNote(file?: TFile) {
-        if (!file) {
-            await this.saveActiveFile()
+        // if file is the active note, save it too
+        if (!file || file === this.app.workspace.getActiveFile()) {
+            file = await this.saveActiveFile() as TFile
         }
 
-        const activeFile = file || this.app.workspace.getActiveFile();
-
-        if (!activeFile) {
+        if (!file) {
             new Notice('No note to print.');
             return;
         }
 
-        const content = await generatePreviewContent(activeFile, this.settings.printTitle);
-        const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
-
+        const content = await generatePreviewContent(file, this.settings.printTitle, this.app);
         if (!content) {
             return;
         }
 
+        const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
+        await openPrintModal(content, this.settings, cssString);
+    }
+
+    async printSelection() {
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!activeView) {
+            new Notice('No active note.');
+            return;
+        }
+    
+        const selection = activeView.editor.getSelection();
+        if (!selection) {
+            new Notice('No text selected.');
+            return;
+        }
+    
+        const content = await generatePreviewContent(selection, false, this.app);
+        if (!content) {
+            return;
+        }
+    
+        const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
         await openPrintModal(content, this.settings, cssString);
     }
 
@@ -97,7 +140,7 @@ export default class PrintPlugin extends Plugin {
         const folderContent = createDiv();
 
         for (const file of files) {
-            const content = await generatePreviewContent(file, this.settings.printTitle);
+            const content = await generatePreviewContent(file, this.settings.printTitle, this.app);
 
             if (!content) {
                 continue;
@@ -118,12 +161,14 @@ export default class PrintPlugin extends Plugin {
     /**
      * Save the active file before printing, so we can retrieve the most recent content.
      */
-    async saveActiveFile() {
+    async saveActiveFile(): Promise<TFile | null> {
         const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
         if (activeView) {
             await activeView.save();
         }
+
+        return this.app.workspace.getActiveFile();
     }
 
     async saveSettings() {

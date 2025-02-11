@@ -10,6 +10,8 @@ export interface PrintPluginSettings {
     combineFolderNotes: boolean;
     hrPageBreaks: boolean;
     debugMode: boolean;
+    usePreview: boolean;
+    useEnhancedRendering: boolean;
 }
 
 export const DEFAULT_SETTINGS: PrintPluginSettings = {
@@ -23,5 +25,7 @@ export const DEFAULT_SETTINGS: PrintPluginSettings = {
     h6Size: '12px',
     combineFolderNotes: false,
     hrPageBreaks: false,
-    debugMode: false
+    debugMode: false,
+    usePreview: true,
+    useEnhancedRendering: true
 };
