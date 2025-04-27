@@ -96,7 +96,7 @@ export default class PrintPlugin extends Plugin {
 
             if (typeof fileExtraClasses === "string") {
                 customClasses = [fileExtraClasses];
-            } else {
+            } else if (typeof fileExtraClasses === "object") {
                 customClasses = Object.values(fileExtraClasses)
             }
         }
