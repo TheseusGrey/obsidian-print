@@ -87,9 +87,9 @@ export class PrintSettingTab extends PluginSettingTab {
             .setName('Extra Classes')
             .setDesc('When using @media print, any `customCssClasses` in the frontmatter will also get added to the document. This helps if you have multiple formats you want to be able to print into (Only works for printing notes, not folders or selections).')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.debugMode)
+                .setValue(this.plugin.settings.extraClasses)
                 .onChange(async (value) => {
-                    this.plugin.settings.debugMode = value;
+                    this.plugin.settings.extraClasses = value;
                     await this.plugin.saveSettings();
                 }));
 
