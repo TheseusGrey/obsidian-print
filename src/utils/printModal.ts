@@ -9,7 +9,7 @@ import { Printd } from 'printd'
  * @param cssString 
  * @returns 
  */
-export async function openPrintModal(content: HTMLElement, settings: PrintPluginSettings, cssString: string): Promise<void> {
+export async function openPrintModal(content: HTMLElement, settings: PrintPluginSettings, cssString: string, extraClasses?: string[]): Promise<void> {
     const htmlElement = document.createElement('html');
     const headElement = document.createElement('head');
 
@@ -27,6 +27,8 @@ export async function openPrintModal(content: HTMLElement, settings: PrintPlugin
 
     const bodyElement = document.createElement('body');
     bodyElement.className = 'obsidian-print';
+    if (extraClasses) bodyElement.classList.add(...extraClasses)
+
     bodyElement.appendChild(content);
 
     htmlElement.appendChild(bodyElement);
