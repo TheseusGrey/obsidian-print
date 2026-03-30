@@ -107,7 +107,7 @@ export default class PrintPlugin extends Plugin {
         }
 
         const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
-        await openPrintModal(content, this.settings, cssString, customClasses);
+        await openPrintModal(file.basename, content, this.settings, cssString, customClasses);
     }
 
     async printSelection() {
@@ -129,7 +129,7 @@ export default class PrintPlugin extends Plugin {
         }
     
         const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
-        await openPrintModal(content, this.settings, cssString);
+        await openPrintModal(`${activeView.file?.basename} snippet`, content, this.settings, cssString);
     }
 
     async printFolder(folder?: TFolder) {
@@ -170,7 +170,8 @@ export default class PrintPlugin extends Plugin {
 
         const cssString = await generatePrintStyles(this.app, this.manifest, this.settings);
 
-        await openPrintModal(folderContent, this.settings, cssString);
+
+        await openPrintModal(folder?.name || "folder", folderContent, this.settings, cssString);
     }
 
     /**

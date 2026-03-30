@@ -4,12 +4,13 @@ import { Printd } from 'printd'
 /**
  * Generate the HTML with the content to be printed. Use Printd to print.
  * 
+ * @param title 
  * @param content 
  * @param settings 
  * @param cssString 
  * @returns 
  */
-export async function openPrintModal(content: HTMLElement, settings: PrintPluginSettings, cssString: string, extraClasses?: string[]): Promise<void> {
+export async function openPrintModal(title: string, content: HTMLElement, settings: PrintPluginSettings, cssString: string, extraClasses?: string[]): Promise<void> {
     const htmlElement = document.createElement('html');
     const headElement = document.createElement('head');
 
@@ -62,5 +63,6 @@ export async function openPrintModal(content: HTMLElement, settings: PrintPlugin
     }
 
     const d = new Printd()
+    d.onBeforePrint(() => document.title = title)
     d.print(htmlElement, [cssString])
 }
